@@ -2,6 +2,7 @@ import secrets
 import base64
 import pyotp
 import random
+from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -15,15 +16,27 @@ from sqlalchemy import select
 
 # SQLite Database
 sqlite_file_name = "motd.db"
-sqlite_url = f"sqlite:////{sqlite_file_name}"
+sqlite_url = f"sqlite:///sqlite_file_name}"
 connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, connect_args=connect_args)
+
+# Buat tabel
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+
+# Dependency injection session
 def get_session():
     with Session(engine) as session:
         yield session
 SessionDep = Annotated[Session, Depends(get_session)]
+
+# Mulai FastAPI app
+app = FastAPI()
+
+# Buat tabel saat aplikasi mulai
+create_db_and_tables()
+
+# Semua route FastAPI ditulis setelah ini
 
 # FastAPI
 app = FastAPI(docs_url=None, redoc_url=None)
