@@ -1,119 +1,48 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Laras Ramalan Zodiak</title>
-  <style>
-    body {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      background-color: #f8f0ff;
-      color: #4b006e;
-      text-align: center;
-      padding: 20px;
-    }
-    .card {
-      background-color: #ffffff;
-      border-radius: 15px;
-      padding: 25px;
-      max-width: 500px;
-      margin: auto;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    .question {
-      font-size: 20px;
-      margin-bottom: 15px;
-    }
-    .input-group {
-      margin-bottom: 20px;
-    }
-    button {
-      background-color: #9c4dcc;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .sticker {
-      font-size: 40px;
-      margin-bottom: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selamat Datang!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 50px;
+        }
+        h1 {
+            color: #3498db;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+        p {
+            color: #555;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+            background: #3498db;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        a:hover {
+            background: #2980b9;
+        }
+    </style>
 </head>
 <body>
-
-  <div class="card" id="step1">
-    <div class="sticker">🌟</div>
-    <div class="question">Namamu siapa nih?</div>
-    <div class="input-group">
-      <input type="text" id="nama" placeholder="Tulis namamu..." />
+    <div class="container">
+        <h1>Halo, Selamat Datang di Web Server Sederhana!</h1>
+        <p>Website ini dibuat menggunakan Python SimpleHTTPServer.</p>
+        <a href="https://www.example.com">Kunjungi Website</a>
     </div>
-    <button onclick="nextStep()">Next</button>
-  </div>
-
-  <div class="card" id="step2" style="display: none;">
-    <div class="sticker">🎂</div>
-    <div class="question">Berapa usiamu?</div>
-    <div class="input-group">
-      <input type="number" id="usia" placeholder="Contoh: 19" />
-    </div>
-    <button onclick="nextStep()">Next</button>
-  </div>
-
-  <div class="card" id="step3" style="display: none;">
-    <div class="sticker">♈♉♊♋♌♍</div>
-    <div class="question">Zodiak kamu apa?</div>
-    <div class="input-group">
-      <select id="zodiak">
-        <option value="">-- Pilih zodiakmu --</option>
-        <option value="Aries">Aries</option>
-        <option value="Taurus">Taurus</option>
-        <option value="Gemini">Gemini</option>
-        <option value="Cancer">Cancer</option>
-        <option value="Leo">Leo</option>
-        <option value="Virgo">Virgo</option>
-        <option value="Libra">Libra</option>
-        <option value="Scorpio">Scorpio</option>
-        <option value="Sagittarius">Sagittarius</option>
-        <option value="Capricorn">Capricorn</option>
-        <option value="Aquarius">Aquarius</option>
-        <option value="Pisces">Pisces</option>
-      </select>
-    </div>
-    <button onclick="showResult()">Lihat Ramalan!</button>
-  </div>
-
-  <div class="card" id="result" style="display: none;">
-    <div class="sticker">🔮</div>
-    <div class="question" id="ramalanOutput"></div>
-    <button onclick="location.reload()">Coba Lagi</button>
-  </div>
-
-  <script>
-    let step = 1;
-
-    function nextStep() {
-      document.getElementById("step" + step).style.display = "none";
-      step++;
-      document.getElementById("step" + step).style.display = "block";
-    }
-
-    function showResult() {
-      const nama = document.getElementById("nama").value || "Teman Misterius";
-      const usia = document.getElementById("usia").value || "Rahasia";
-      const zodiak = document.getElementById("zodiak").value || "Alien";
-
-      const ramalan = `Halo ${nama} si ${zodiak} berusia ${usia} tahun!
-      Hari ini kamu kayak teh manis yang kelamaan di meja—manis tapi lelah.
-      Jangan lupa istirahat ya. Semesta support kamu buat tetap jadi yang terbaik!`;
-
-      document.getElementById("step3").style.display = "none";
-      document.getElementById("ramalanOutput").innerText = ramalan;
-      document.getElementById("result").style.display = "block";
-    }
-  </script>
 </body>
 </html>
 
