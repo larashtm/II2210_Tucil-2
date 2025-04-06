@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Message of the Day</title>
+    <script>
+        async function loadMOTD() {
+            const res = await fetch("/motd");
+            const data = await res.json();
+
+            document.getElementById("msg").innerText = data.motd;
+            document.getElementById("creator").innerText = data.creator;
+            document.getElementById("created").innerText = data.created_at;
+        }
+
+        window.onload = loadMOTD;
+    </script>
+</head>
+<body>
+    <h1>Message of the Day</h1>
+    <p><strong>Pesan:</strong> <span id="msg"></span></p>
+    <p><strong>Dibuat oleh:</strong> <span id="creator"></span></p>
+    <p><strong>Dibuat pada:</strong> <span id="created"></span></p>
+</body>
+</html>
