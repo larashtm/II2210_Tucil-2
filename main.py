@@ -1,11 +1,17 @@
 import secrets
 import base64
 import pyotp
+import random
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from sqlmodel import create_engine, Session, SQLModel 
+from sqlmodel import create_engine, Session, SQLModel, select
 from typing import Annotated
 from model import MOTD, MOTDBase
+from sqlalchemy import select
+
+
+
 
 # SQLite Database
 sqlite_file_name = "motd.db"
@@ -24,53 +30,119 @@ app = FastAPI(docs_url=None, redoc_url=None)
 security = HTTPBasic()
 
 # Users - lengkapi dengan userid dan shared_secret yang sesuai
-users = {"sister" : "ii2210_sister_"} 
+users = {"sister" : "ii2210_sister_rahasia", "laras":"ii2210_laras_sukaungu"}
+# fungsi autentikasi
+def authenticate(credentials: HTTPBasicCredentials):
+    correct_password = users.get(credentials.username)
+    if not correct_password or not secrets.compare_digest(credentials.password, correct_password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid credentials",
+                            headers={"WWW-Authenticate": "Basic"})
+    return credentials.username
+
 
 @app.get("/")
 async def root():
+   return FileResponse("index.html")
 
-    # Silahkan lengkapi dengan kode untuk memberikan index.html
-	pass
 
 @app.get("/motd")
-async def get_motd():
+async def get_motd(session: SessionDep):
+    try:
+        messages = session.exec(select(MOTD)).all()
+        if not messages:
+            return {"motd": "Belum ada pesan MOTD yang tersedia."}
 
-	# Silahkan lengkapi dengan kode untuk memberikan message of the day
-	pass
+        chosen_message = random.choice(messages)
+        return {
+            "motd": chosen_message.motd,
+            "creator": chosen_message.creator,
+            "created_at": str(chosen_message.created_at)
+        }
 
+    except Exception as e:
+        print(f"Error saat mengambil MOTD: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"motd": "Terjadi kesalahan saat mengambil pesan.", "error": str(e)}
+        )
+	    
 @app.post("/motd")
-async def post_motd(message: MOTDBase, session: SessionDep, credentials: Annotated[HTTPBasicCredentials, Depends(security)]):
+async def add_motd(
+    message: MOTDBase,
+    session: SessionDep,
+    credentials: Annotated[HTTPBasicCredentials, Depends(security)]
+):
+    current_pass_bytes = credentials.password.encode("utf-8")
+    is_valid_user, is_valid_pass = False, False
 
-	current_password_bytes = credentials.password.encode("utf8")
+    try:
+        if credentials.username in users:
+            is_valid_user = True
+            encoded_secret = base64.b32encode(users[credentials.username].encode("utf-8")).decode("utf-8")
+            totp = pyotp.TOTP(s=encoded_secret, digest="SHA256", digits=8)
+            is_valid_pass = secrets.compare_digest(current_pass_bytes, totp.now().encode("utf-8"))
 
-	valid_username, valid_password = False, False
+        if is_valid_user and is_valid_pass:
+            new_entry = MOTD(motd=message.motd, creator=credentials.username)
+            session.add(new_entry)
+            session.commit()
+            session.refresh(new_entry)
 
-	try:
+            return {
+                "motd": new_entry.motd,
+                "creator": new_entry.creator,
+                "created_at": str(new_entry.created_at)
+            }
 
-		if credentials.username in users:
-			valid_username = True
-			s = base64.b32encode(users.get(credentials.username).encode("utf-8")).decode("utf-8")
-			totp = pyotp.TOTP(s=s,digest="SHA256",digits=8)
-			valid_password = secrets.compare_digest(current_password_bytes,totp.now().encode("utf8"))
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Username atau password salah."
+        )
 
-			if valid_password and valid_username:
-				
-				# Silahkan lengkapi dengan kode untuk menambahkan message of the day ke basis data
-				pass
-			
-			else:
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Username atau password salah."
+        )
 
-				raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid userid or password.") 
-			
-		else:
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Terjadi kesalahan saat menambahkan MOTD: {str(e)}"
+        )
 
-			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid userid or password.")
-		
-	except HTTPException as e:
+# Route untuk mengrimkan MOTD baru
+@app.post("/motd")
+async def post_motd(motd: MOTDBase, session: SessionDep, credentials: Annotated[HTTPBasicCredentials, Depends(security)]):
+    current_password_bytes = credentials.password.encode("utf8")
+    valid_username, valid_password = False, False
 
-	    raise e
-
-if __name__ == "__main__":
-	
-	# Silahkan lengkapi dengan kode untuk menjalankan server
-	pass
+    try:
+        if credentials.username in users:
+            valid_username = True
+            s = base64.b32encode(users.get(credentials.username).encode("utf-8")).decode("utf-8")
+            totp = pyotp.TOTP(s=s, digest="SHA256", digits=8)
+            valid_password = secrets.compare_digest(current_password_bytes, totp.now().encode("utf8"))
+            if valid_username and valid_password:
+                print("Login berhasil")
+                new_entry = MOTD(motd=motd.message, creator=credentials.username)
+                session.add(new_entry)
+                session.commit()
+                session.refresh(new_entry)
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Username atau password salah."
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid userid or password."
+            )
+    except HTTPException as e:
+        raise e
